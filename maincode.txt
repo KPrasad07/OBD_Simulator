@@ -1,0 +1,169 @@
+// Transmitter 
+
+String response="";
+String WorkingString="";
+String DisplayString="";
+String SentMessage="";
+long A;
+int B;
+int start=0;
+int a,b,cnt=0;
+float rpm=0;
+volatile int flag=0;
+byte inData;
+char inChar;
+
+
+
+void setup()
+{
+  pinMode(13, OUTPUT);
+  pinMode(3, INPUT);
+  pinMode(8,OUTPUT);
+  Serial.begin(9600);
+  attachInterrupt(digitalPinToInterrupt(3), transmitCode, RISING);
+   //device check
+   SentMessage = "ATI";
+   Serial.println("ATI");
+   delay(500);
+   ReadData();
+  if (response.substring(1,7)=="ELM327")
+    {
+      lcd.setCursor(0, 0);
+      lcd.print("Welcome...            ");
+      lcd.setCursor(0, 1);
+      lcd.print("Connection OK         ");
+      delay(1500);
+    }
+    else
+    {
+      lcd.setCursor(0, 0);
+      lcd.print("Error             ");
+      lcd.setCursor(0, 1);
+      lcd.print("No Connection!         ");
+      delay(1500);
+      goto Retry;
+    }
+  
+  delay(1500);
+  //end check
+}
+void transmitCode()
+{
+  Serial.flush();
+  start=1;
+}
+
+//read data
+
+void ReadData()
+{
+  response="";  
+  while(Serial.available() > 0)
+  {
+    inData=0;
+    inChar=0;
+    inData = Serial.read();
+    inChar=char(inData);
+    response = response + inChar;
+  }
+  //rpm.........................
+  if (SentMessage=="01 0C")
+  {
+    WorkingString = response.substring(7,9);
+    A = strtol(WorkingString.c_str(),NULL,0);
+    WorkingString = BuildINString.substring(11,13);
+    B = strtol(WorkingString.c_str(),NULL,0);
+   
+   DisplayValue = ((A * 256)+B)/4;
+   DisplayString = String(DisplayValue) + " rpm          ";
+  // lcd.setCursor(0, 1);
+  // lcd.print(DisplayString);
+  }
+  //speed.....................  
+  if (SentMessage=="01 0D")
+  {
+    WorkingString = BuildINString.substring(7,9);
+    A = strtol(WorkingString.c_str(),NULL,0);
+   DisplayValue = A;
+   DisplayString = String(DisplayValue) + " km/h          ";
+   lcd.setCursor(0, 1);
+   lcd.print(DisplayString); 
+  }
+  //
+}
+
+
+void loop()
+{
+  int x;
+  x =   
+  if(start==1)
+   {
+       if (x > 800)
+       {
+        //lcd.setCursor(0, 0);
+        //lcd.print("09 RPM             ");
+        //lcd.setCursor(0, 1);
+        //lcd.print(DisplayString);
+        SentMessage = "01 0C";
+        Serial.println("01 0C");
+        delay(300);
+        ReadData();
+       }
+       if (x > 500 and x<800)
+       {
+         //lcd.setCursor(0, 0);
+         //lcd.print("10 Vehicle Speed   ");
+         //lcd.setCursor(0, 1);
+         //lcd.print(DisplayString);
+           SentMessage = "01 0D";
+           Serial.println("01 0D");
+           delay(300);
+           ReadData();
+       }
+       
+  
+
+   }
+}?
+
+============================
+//Receiver
+
+String t="";
+void setup()
+{
+  pinMode(13, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop()
+{
+  if(!Serial.available())
+  {
+    digitalWrite(13,1);
+    delay(200);
+    digitalWrite(13,0);
+    delay(200);
+  }
+  else
+  {
+    digitalWrite(13,0);
+    
+    Serial.flush();
+    t = Serial.readStringUntil('\r');
+    Serial.print(t);
+    if(t=="010C")
+    {
+      Serial.print("410D0104\r");
+    }
+    else
+    {
+      Serial.flush();
+    }
+   
+  }
+    
+
+}
